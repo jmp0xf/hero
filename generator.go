@@ -18,6 +18,7 @@ import (
 
 const TypeBytesBuffer = "bytes.Buffer"
 const TypeIOWriter = "io.Writer"
+const TypeGinContext = "gin.Context"
 
 var errExpectParam = errors.New(
 	"The last parameter should be *bytes.Buffer or io.Writer type",
@@ -109,8 +110,8 @@ func parseParams(funcDecl *ast.FuncDecl) (name, t string, err error) {
 	}
 
 	t = fmt.Sprintf("%s.%s", selectorExpr.X, selectorExpr.Sel)
-	if t != TypeBytesBuffer && t != TypeIOWriter {
-		err = fmt.Errorf("'%s' expected to be '%s' or '%s'", t, TypeBytesBuffer, TypeIOWriter)
+	if t != TypeBytesBuffer && t != TypeIOWriter && t != TypeGinContext {
+		err = fmt.Errorf("'%s' expected to be '%s' or '%s' or '%s'", t, TypeBytesBuffer, TypeIOWriter, TypeGinContext)
 		return
 	}
 
@@ -240,7 +241,7 @@ func Generate(source, dest, pkgName string) {
 				import "html"
 				import "unsafe"
 
-				import "github.com/shiyanhui/hero"
+				import "github.com/jmp0xf/hero"
 			`)
 
 			imports := n.childrenByType(TypeImport)
@@ -266,8 +267,25 @@ func Generate(source, dest, pkgName string) {
 			paramName, paramType, err := parseParams(funcDecl)
 			checkError(err)
 
-			if paramType == TypeIOWriter {
+			if paramType != TypeBytesBuffer {
 				bufName := "_buffer"
+				writerName := paramName
+
+				if paramType == TypeGinContext {
+					buffer.WriteString(
+						fmt.Sprintf(
+							"var T i18n.TranslateFunc\nt, _ := %s.Get(\"T\")\nif t!=nil{T = t.(i18n.TranslateFunc)}\nT(\"\")\n",
+							paramName,
+						),
+					)
+					writerName = "w"
+					buffer.WriteString(
+						fmt.Sprintf(
+							"%s := %s.Writer\n",
+							writerName, paramName,
+						),
+					)
+				}
 
 				buffer.WriteString(
 					fmt.Sprintf(
@@ -285,7 +303,7 @@ func Generate(source, dest, pkgName string) {
 				buffer.WriteString(
 					fmt.Sprintf(
 						"%s %s.Write(%s.Bytes())\n",
-						ret, paramName, bufName,
+						ret, writerName, bufName,
 					),
 				)
 			} else {

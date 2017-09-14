@@ -274,7 +274,7 @@ func Generate(source, dest, pkgName string) {
 				if paramType == TypeGinContext {
 					buffer.WriteString(
 						fmt.Sprintf(
-							"var T i18n.TranslateFunc\nt, _ := %s.Get(\"T\")\nif t!=nil{T = t.(i18n.TranslateFunc)}\nT(\"\")\n",
+							"var T i18n.TranslateFunc\nt, _ := %s.Get(\"T\")\nif t!=nil{T = *t.(*i18n.TranslateFunc)}\nT(\"\")\n",
 							paramName,
 						),
 					)

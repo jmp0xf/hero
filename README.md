@@ -46,15 +46,20 @@ go get golang.org/x/tools/cmd/goimports
 ```shell
 hero [options]
 
-options:
-	- source:  the html template file or dir, default is current dir.
-	- dest:    generated golang files dir, it will be the same with source if not set.
-	- pkgname: the generated template package name, default is `template`.
-	- watch:   whether auto compile when the source files change.
+  -source string
+        the html template file or dir (default "./")
+  -dest string
+        generated golang files dir, it will be the same with source if not set
+  -extensions string
+        source file extensions, comma splitted if many (default ".html")
+  -pkgname template
+        the generated template package name, default is template (default "template")
+  -watch
+        whether automatically compile when the source files change
 
 example:
 	hero -source="./"
-	hero -source="$GOPATH/src/app/template" -watch
+	hero -source="$GOPATH/src/app/template" -dest="./" -extends=".html,.htm" -pkgname="t" -watch
 ```
 
 ## Quick Start
@@ -159,9 +164,9 @@ At last, start the server and visit `http://localhost:8080/users` in your browse
 There are only nine necessary kinds of statements, which are:
 
 - Function Definition `<%: func define %>`
-  - Function definition statement defines the function which represents a html file.
+  - Function definition statement defines the function which represents an html file.
   - The type of the last parameter in the function defined should be `*bytes.Buffer` for manual buffer management or `io.Writer` for automatic buffer management (
-    note: if using `io.Writer` you may optionally specify return values `(int, error)` to handle the result of `io.Wirter.Write`). Hero will identify the parameter name
+    note: if using `io.Writer` you may optionally specify return values `(int, error)` to handle the result of `io.Writer.Write`). Hero will identify the parameter name
     automaticly.
   - Example:
     - `<%: func UserList(userList []string, buffer *bytes.Buffer) %>`
@@ -273,8 +278,8 @@ There are only nine necessary kinds of statements, which are:
 
 - Escaped Value `<%=[t] variable %>`
 
-  - Escaped Value statement is similar with Raw Value statement, but after converting, it will escaped it with `html.EscapesString`.
-  - `t` is the same with that of `Raw Value Statement`.
+  - Escaped Value statement is similar with Raw Value statement, but after converting, it will be escaped it with `html.EscapesString`.
+  - `t` is the same as in `Raw Value Statement`.
   - Example:
 
     ```go
